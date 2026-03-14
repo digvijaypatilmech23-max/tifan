@@ -3,95 +3,100 @@
 
 <head>
 
-<title>KrushiSarthi Darshan</title>
+<title>Smart Plantation</title>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
 
 body{
-font-family: Arial;
 margin:0;
-background:#e8f5e9;
+font-family:Arial;
+background:#eaffea;
 text-align:center;
 }
 
-/* landing page */
+/* HEADER */
 
-#landing{
-height:100vh;
+header{
+background:green;
+color:white;
+padding:15px;
+font-size:22px;
+}
+
+/* WELCOME PAGE */
+
+#welcome{
+height:90vh;
 display:flex;
 flex-direction:column;
 justify-content:center;
 align-items:center;
 }
 
-.title{
-font-size:45px;
-color:#2e7d32;
-font-weight:bold;
-animation: slide 2s;
+#tractor{
+font-size:70px;
+animation:move 4s linear infinite;
 }
 
-@keyframes slide{
-from{transform:translateY(-50px);opacity:0;}
-to{transform:translateY(0);opacity:1;}
+@keyframes move{
+0%{transform:translateX(-150px)}
+100%{transform:translateX(150px)}
 }
 
-input{
-padding:10px;
-font-size:18px;
-margin-top:20px;
-}
+/* BUTTON */
 
 button{
-padding:12px 25px;
+padding:15px 30px;
 font-size:18px;
+border:none;
+border-radius:8px;
 background:#2e7d32;
 color:white;
-border:none;
-border-radius:5px;
 cursor:pointer;
 }
 
-/* dashboard */
+/* DASHBOARD */
 
 #dashboard{
 display:none;
 padding:20px;
 }
 
-.grid{
+.cards{
 display:grid;
-grid-template-columns:repeat(auto-fit,220px);
-gap:20px;
-justify-content:center;
-margin-top:30px;
+grid-template-columns:repeat(2,1fr);
+gap:15px;
+margin-top:20px;
 }
 
 .card{
 background:white;
-padding:20px;
+padding:15px;
 border-radius:10px;
 box-shadow:0 4px 10px rgba(0,0,0,0.2);
-cursor:pointer;
 }
 
-.map{
-margin-top:30px;
-font-size:30px;
-}
+/* MAPPING DASHBOARD */
 
-#graphBox{
+#mappingDashboard{
 display:none;
-position:fixed;
-top:10%;
-left:50%;
-transform:translateX(-50%);
-background:white;
 padding:20px;
-border-radius:10px;
-box-shadow:0 5px 20px rgba(0,0,0,0.3);
+}
+
+/* MAP GRID */
+
+#map{
+margin-top:30px;
+display:grid;
+grid-template-columns:repeat(auto-fill,45px);
+gap:8px;
+justify-content:center;
+}
+
+.spot{
+font-size:30px;
 }
 
 </style>
@@ -100,213 +105,168 @@ box-shadow:0 5px 20px rgba(0,0,0,0.3);
 
 <body>
 
-<!-- LANDING PAGE -->
+<header>
+🚜 Smart Plantation Monitor
+</header>
 
-<div id="landing">
+<!-- WELCOME PAGE -->
 
-<div class="title">
-KRUSHISARTHI DARSHAN
-</div>
+<div id="welcome">
 
-<h3>Smart Plantation Monitoring System</h3>
+<h2>Welcome Farmer</h2>
 
-<img src="https://cdn-icons-png.flaticon.com/512/1995/1995574.png" width="120">
+<div id="tractor">🚜🌱🌱🌱</div>
 
 <br>
 
-<input id="vehicleID" placeholder="Enter Vehicle ID">
-
-<br><br>
-
-<button onclick="startDashboard()">START</button>
+<button onclick="startSystem()">Start Monitoring</button>
 
 </div>
 
-<!-- DASHBOARD -->
+<!-- MAIN DASHBOARD -->
 
 <div id="dashboard">
 
-<h1>KrushiSarthi Darshan</h1>
+<h2>Machine Dashboard</h2>
 
-<div class="grid">
+<div class="cards">
 
-<div class="card" onclick="openGraph('Speed')">
-🚜 Speed
-<h2 id="speed">0</h2>
-</div>
-
-<div class="card" onclick="openGraph('Distance')">
-📏 Distance Travelled
-<h2 id="distance">0</h2>
-</div>
-
-<div class="card" onclick="openGraph('Plants')">
-🌱 Plants Planted
-<h2 id="plants">0</h2>
+<div class="card">
+🌱 Planted
+<h2 id="planted">0</h2>
 </div>
 
 <div class="card">
-❌ Plants Missed
+❌ Missed
 <h2 id="missed">0</h2>
 </div>
 
 <div class="card">
-📐 Plant Distance
-<h2 id="plantDist">0</h2>
-</div>
-
-<div class="card" onclick="openGraph('Row Switch')">
-🔀 Row Switching
-<h2 id="rowSwitch">OFF</h2>
+🚜 Speed
+<h2 id="speed">0</h2>
 </div>
 
 <div class="card">
-↔ Row Distance
-<h2 id="rowDist">0</h2>
-</div>
-
-<div class="card">
-🔋 Battery
-<h2 id="battery">0</h2>
+📏 Distance
+<h2 id="distance">0</h2>
 </div>
 
 </div>
 
-<!-- planting map -->
+<br>
 
-<h2>Live Plantation Map</h2>
-
-<div class="map" id="map"></div>
+<button onclick="openMapping()">🗺 Open Live Plantation Mapping</button>
 
 </div>
 
-<!-- graph popup -->
+<!-- MAPPING DASHBOARD -->
 
-<div id="graphBox">
+<div id="mappingDashboard">
 
-<h3 id="graphTitle"></h3>
+<h2>🌾 Live Plantation Mapping</h2>
 
-<canvas id="chart" width="400"></canvas>
+<button onclick="closeMapping()">⬅ Back</button>
 
-<br><br>
-
-<button onclick="closeGraph()">Close</button>
+<div id="map"></div>
 
 </div>
 
-<script>
+<!-- FIREBASE SCRIPT -->
 
-/* vehicle login */
+<script type="module">
 
-function startDashboard(){
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-let id=document.getElementById("vehicleID").value;
+/* FIREBASE CONFIG */
 
-if(id==="001"){
+const firebaseConfig = {
 
-document.getElementById("landing").style.display="none";
+apiKey:"AIzaSyAzkcg1wzQTo2B7vQdcahtHAM2YBPn9WSY",
+
+databaseURL:"https://planting-77ce1-default-rtdb.asia-southeast1.firebasedatabase.app"
+
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+/* PAGE NAVIGATION */
+
+window.startSystem=function(){
+
+document.getElementById("welcome").style.display="none";
 document.getElementById("dashboard").style.display="block";
 
-}else{
+}
 
-alert("Invalid Vehicle ID (Use 001 for test)");
+window.openMapping=function(){
+
+document.getElementById("dashboard").style.display="none";
+document.getElementById("mappingDashboard").style.display="block";
 
 }
 
-}
+window.closeMapping=function(){
 
-/* test values */
-
-let speed=4;
-let distance=120;
-let plants=40;
-let missed=3;
-let battery=80;
-
-/* update values */
-
-setInterval(function(){
-
-speed=(Math.random()*6).toFixed(2);
-distance+=1;
-plants+=Math.floor(Math.random()*2);
-battery-=0.05;
-
-document.getElementById("speed").innerText=speed+" km/h";
-document.getElementById("distance").innerText=distance+" m";
-document.getElementById("plants").innerText=plants;
-document.getElementById("missed").innerText=missed;
-document.getElementById("plantDist").innerText="30 cm";
-document.getElementById("rowSwitch").innerText=Math.random()>0.8?"ON":"OFF";
-document.getElementById("rowDist").innerText="45 cm";
-document.getElementById("battery").innerText=battery.toFixed(0)+" %";
-
-updateMap();
-
-updateChart(speed);
-
-},3000);
-
-/* planting map */
-
-function updateMap(){
-
-let map="";
-
-for(let i=0;i<15;i++){
-
-map+=Math.random()>0.2?"🌱 ":"⬜ ";
+document.getElementById("mappingDashboard").style.display="none";
+document.getElementById("dashboard").style.display="block";
 
 }
 
-document.getElementById("map").innerHTML=map;
+/* PLANTED */
 
-}
-
-/* chart */
-
-let ctx=document.getElementById("chart");
-
-let chart=new Chart(ctx,{
-type:"line",
-data:{
-labels:[],
-datasets:[{
-label:"value",
-data:[],
-borderColor:"green"
-}]
-}
+onValue(ref(db,"plant/count"),(snap)=>{
+document.getElementById("planted").innerText=snap.val()||0;
 });
 
-function updateChart(val){
+/* MISSED */
 
-chart.data.labels.push("");
-chart.data.datasets[0].data.push(val);
+onValue(ref(db,"plant/missed"),(snap)=>{
+document.getElementById("missed").innerText=snap.val()||0;
+});
 
-if(chart.data.labels.length>15){
+/* SPEED */
 
-chart.data.labels.shift();
-chart.data.datasets[0].data.shift();
+onValue(ref(db,"plant/speed"),(snap)=>{
+document.getElementById("speed").innerText=snap.val()||0;
+});
 
+/* DISTANCE */
+
+onValue(ref(db,"plant/distance"),(snap)=>{
+document.getElementById("distance").innerText=snap.val()||0;
+});
+
+/* PLANTATION MAP */
+
+onValue(ref(db,"plant/map"),(snapshot)=>{
+
+const data=snapshot.val()||{};
+const container=document.getElementById("map");
+
+container.innerHTML="";
+
+const positions=Object.keys(data)
+.map(Number)
+.sort((a,b)=>a-b);
+
+positions.forEach(pos=>{
+
+const span=document.createElement("span");
+span.className="spot";
+
+if(data[pos]==1){
+span.innerHTML="🌱";
+}else{
+span.innerHTML="❌";
 }
 
-chart.update();
+container.appendChild(span);
 
-}
+});
 
-function openGraph(name){
-
-document.getElementById("graphTitle").innerText=name+" vs Time";
-document.getElementById("graphBox").style.display="block";
-
-}
-
-function closeGraph(){
-
-document.getElementById("graphBox").style.display="none";
-
-}
+});
 
 </script>
 
