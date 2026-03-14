@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html>
 
 <head>
@@ -16,45 +17,83 @@ background:#e8f5e9;
 text-align:center;
 }
 
-/* landing page */
+/* LANDING PAGE */
 
 #landing{
 height:100vh;
 display:flex;
-flex-direction:column;
 justify-content:center;
 align-items:center;
+background:linear-gradient(135deg,#e8f5e9,#c8e6c9);
 }
 
-.title{
-font-size:45px;
-color:#2e7d32;
+.hero{
+text-align:center;
+padding:40px;
+}
+
+.mainTitle{
+font-size:55px;
+color:#1b5e20;
 font-weight:bold;
-animation: slide 2s;
+animation:titleSlide 2s ease;
 }
 
-@keyframes slide{
-from{transform:translateY(-50px);opacity:0;}
-to{transform:translateY(0);opacity:1;}
+.subtitle{
+font-size:22px;
+color:#2e7d32;
+margin-bottom:30px;
 }
 
-input{
-padding:10px;
-font-size:18px;
+.tractorAnimation{
+font-size:60px;
+margin:20px;
+animation:tractorMove 6s linear infinite;
+}
+
+.loginBox{
+background:white;
+padding:25px;
+border-radius:10px;
+box-shadow:0 6px 20px rgba(0,0,0,0.2);
 margin-top:20px;
 }
 
+.loginBox input{
+padding:12px;
+font-size:18px;
+width:220px;
+border:1px solid #ccc;
+border-radius:5px;
+}
+
 button{
-padding:12px 25px;
+padding:12px 30px;
 font-size:18px;
 background:#2e7d32;
 color:white;
 border:none;
-border-radius:5px;
+border-radius:6px;
 cursor:pointer;
+transition:0.3s;
 }
 
-/* dashboard */
+button:hover{
+background:#1b5e20;
+transform:scale(1.05);
+}
+
+@keyframes titleSlide{
+from{opacity:0;transform:translateY(-60px);}
+to{opacity:1;transform:translateY(0);}
+}
+
+@keyframes tractorMove{
+0%{transform:translateX(-200px);}
+100%{transform:translateX(200px);}
+}
+
+/* DASHBOARD */
 
 #dashboard{
 display:none;
@@ -77,7 +116,7 @@ box-shadow:0 4px 10px rgba(0,0,0,0.2);
 cursor:pointer;
 }
 
-/* mapping screen */
+/* MAPPING PAGE */
 
 #mappingPage{
 display:none;
@@ -96,18 +135,25 @@ margin-top:30px;
 font-size:28px;
 }
 
-/* graph popup */
+/* GRAPH POPUP */
 
 #graphBox{
 display:none;
 position:fixed;
-top:10%;
+top:5%;
 left:50%;
 transform:translateX(-50%);
 background:white;
-padding:20px;
+padding:25px;
 border-radius:10px;
 box-shadow:0 5px 20px rgba(0,0,0,0.3);
+width:80%;
+max-width:900px;
+}
+
+#graphTitle{
+font-size:28px;
+color:#2e7d32;
 }
 
 </style>
@@ -120,21 +166,27 @@ box-shadow:0 5px 20px rgba(0,0,0,0.3);
 
 <div id="landing">
 
-<div class="title">
-KRUSHISARTHI DARSHAN
+<div class="hero">
+
+<h1 class="mainTitle">KRUSHISARTHI DARSHAN</h1>
+
+<h3 class="subtitle">Smart Plantation Monitoring System</h3>
+
+<div class="tractorAnimation">
+🚜 🌱 🌱 🌱 🌱
 </div>
 
-<h3>Smart Plantation Monitoring System</h3>
-
-<img src="https://cdn-icons-png.flaticon.com/512/1995/1995574.png" width="120">
-
-<br>
+<div class="loginBox">
 
 <input id="vehicleID" placeholder="Enter Vehicle ID">
 
 <br><br>
 
-<button onclick="startDashboard()">START</button>
+<button onclick="startDashboard()">START MONITORING</button>
+
+</div>
+
+</div>
 
 </div>
 
@@ -152,7 +204,7 @@ KRUSHISARTHI DARSHAN
 </div>
 
 <div class="card" onclick="openGraph('Distance')">
-📏 Distance Travelled
+📏 Distance
 <h2 id="distance">0</h2>
 </div>
 
@@ -168,7 +220,7 @@ KRUSHISARTHI DARSHAN
 
 <div class="card">
 📐 Plant Distance
-<h2 id="plantDist">0</h2>
+<h2 id="plantDist">30 cm</h2>
 </div>
 
 <div class="card" onclick="openGraph('Row Switch')">
@@ -178,12 +230,12 @@ KRUSHISARTHI DARSHAN
 
 <div class="card">
 ↔ Row Distance
-<h2 id="rowDist">0</h2>
+<h2 id="rowDist">45 cm</h2>
 </div>
 
 <div class="card">
 🔋 Battery
-<h2 id="battery">0</h2>
+<h2 id="battery">80%</h2>
 </div>
 
 <div class="card" onclick="openMapping()">
@@ -201,19 +253,19 @@ KRUSHISARTHI DARSHAN
 
 <h1>🌾 Live Plantation Mapping</h1>
 
-<button onclick="closeMapping()">⬅ Back to Dashboard</button>
+<button onclick="closeMapping()">⬅ Back</button>
 
 <div id="mapGrid"></div>
 
 </div>
 
-<!-- graph popup -->
+<!-- GRAPH POPUP -->
 
 <div id="graphBox">
 
 <h3 id="graphTitle"></h3>
 
-<canvas id="chart" width="400"></canvas>
+<canvas id="chart" height="400"></canvas>
 
 <br><br>
 
@@ -223,7 +275,7 @@ KRUSHISARTHI DARSHAN
 
 <script>
 
-/* vehicle login */
+/* LOGIN */
 
 function startDashboard(){
 
@@ -236,13 +288,13 @@ document.getElementById("dashboard").style.display="block";
 
 }else{
 
-alert("Invalid Vehicle ID (Use 001 for test)");
+alert("Invalid Vehicle ID (Use 001 for testing)");
 
 }
 
 }
 
-/* mapping navigation */
+/* NAVIGATION */
 
 function openMapping(){
 
@@ -258,7 +310,7 @@ document.getElementById("dashboard").style.display="block";
 
 }
 
-/* test values */
+/* TEST DATA */
 
 let speed=4;
 let distance=120;
@@ -266,7 +318,7 @@ let plants=40;
 let missed=3;
 let battery=80;
 
-/* update values */
+/* UPDATE VALUES */
 
 setInterval(function(){
 
@@ -279,18 +331,15 @@ document.getElementById("speed").innerText=speed+" km/h";
 document.getElementById("distance").innerText=distance+" m";
 document.getElementById("plants").innerText=plants;
 document.getElementById("missed").innerText=missed;
-document.getElementById("plantDist").innerText="30 cm";
 document.getElementById("rowSwitch").innerText=Math.random()>0.8?"ON":"OFF";
-document.getElementById("rowDist").innerText="45 cm";
-document.getElementById("battery").innerText=battery.toFixed(0)+" %";
+document.getElementById("battery").innerText=battery.toFixed(0)+"%";
 
 updateMap();
-
 updateChart(speed);
 
 },3000);
 
-/* plantation map */
+/* MAP */
 
 function updateMap(){
 
@@ -316,7 +365,7 @@ container.appendChild(span);
 
 }
 
-/* chart */
+/* GRAPH */
 
 let ctx=document.getElementById("chart");
 
@@ -325,16 +374,37 @@ type:"line",
 data:{
 labels:[],
 datasets:[{
-label:"value",
+label:"Sensor Value",
 data:[],
-borderColor:"green"
+borderColor:"green",
+borderWidth:3,
+fill:false,
+tension:0.3
 }]
+},
+options:{
+responsive:true,
+scales:{
+x:{
+title:{
+display:true,
+text:"Time"
+}
+},
+y:{
+title:{
+display:true,
+text:"Value"
+}
+}
+}
 }
 });
 
 function updateChart(val){
 
 chart.data.labels.push("");
+
 chart.data.datasets[0].data.push(val);
 
 if(chart.data.labels.length>15){
