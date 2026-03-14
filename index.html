@@ -3,26 +3,67 @@
 
 <head>
 
-<title>Smart Plantation Dashboard</title>
+<title>KrushiSarthi Darshan</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 
 body{
 font-family: Arial;
-background:#f0fff4;
-text-align:center;
 margin:0;
+background:#e8f5e9;
+text-align:center;
 }
 
-header{
+/* landing page */
+
+#landing{
+height:100vh;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+}
+
+.title{
+font-size:45px;
+color:#2e7d32;
+font-weight:bold;
+animation: slide 2s;
+}
+
+@keyframes slide{
+from{transform:translateY(-50px);opacity:0;}
+to{transform:translateY(0);opacity:1;}
+}
+
+input{
+padding:10px;
+font-size:18px;
+margin-top:20px;
+}
+
+button{
+padding:12px 25px;
+font-size:18px;
 background:#2e7d32;
 color:white;
+border:none;
+border-radius:5px;
+cursor:pointer;
+}
+
+/* dashboard */
+
+#dashboard{
+display:none;
 padding:20px;
 }
 
-.dashboard{
+.grid{
 display:grid;
-grid-template-columns:repeat(auto-fit,200px);
+grid-template-columns:repeat(auto-fit,220px);
 gap:20px;
 justify-content:center;
 margin-top:30px;
@@ -32,8 +73,25 @@ margin-top:30px;
 background:white;
 padding:20px;
 border-radius:10px;
-box-shadow:0 4px 8px rgba(0,0,0,0.2);
-font-size:22px;
+box-shadow:0 4px 10px rgba(0,0,0,0.2);
+cursor:pointer;
+}
+
+.map{
+margin-top:30px;
+font-size:30px;
+}
+
+#graphBox{
+display:none;
+position:fixed;
+top:10%;
+left:50%;
+transform:translateX(-50%);
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0 5px 20px rgba(0,0,0,0.3);
 }
 
 </style>
@@ -42,37 +100,215 @@ font-size:22px;
 
 <body>
 
-<header>
+<!-- LANDING PAGE -->
 
-<h1>🌱 Smart Plantation Monitoring Dashboard</h1>
-<h3 id="status">Machine Status: ONLINE</h3>
+<div id="landing">
 
-</header>
+<div class="title">
+KRUSHISARTHI DARSHAN
+</div>
 
-<div class="dashboard">
+<h3>Smart Plantation Monitoring System</h3>
 
-<div class="card">
-<h2>🚜 Speed</h2>
-<p id="speed">0 km/h</p>
+<img src="https://cdn-icons-png.flaticon.com/512/1995/1995574.png" width="120">
+
+<br>
+
+<input id="vehicleID" placeholder="Enter Vehicle ID">
+
+<br><br>
+
+<button onclick="startDashboard()">START</button>
+
+</div>
+
+<!-- DASHBOARD -->
+
+<div id="dashboard">
+
+<h1>KrushiSarthi Darshan</h1>
+
+<div class="grid">
+
+<div class="card" onclick="openGraph('Speed')">
+🚜 Speed
+<h2 id="speed">0</h2>
+</div>
+
+<div class="card" onclick="openGraph('Distance')">
+📏 Distance Travelled
+<h2 id="distance">0</h2>
+</div>
+
+<div class="card" onclick="openGraph('Plants')">
+🌱 Plants Planted
+<h2 id="plants">0</h2>
 </div>
 
 <div class="card">
-<h2>📏 Distance</h2>
-<p id="distance">0 m</p>
+❌ Plants Missed
+<h2 id="missed">0</h2>
 </div>
 
 <div class="card">
-<h2>🌱 Saplings Planted</h2>
-<p id="plants">0</p>
+📐 Plant Distance
+<h2 id="plantDist">0</h2>
+</div>
+
+<div class="card" onclick="openGraph('Row Switch')">
+🔀 Row Switching
+<h2 id="rowSwitch">OFF</h2>
 </div>
 
 <div class="card">
-<h2>↔ Row Alignment</h2>
-<p id="rowStatus">OK</p>
+↔ Row Distance
+<h2 id="rowDist">0</h2>
+</div>
+
+<div class="card">
+🔋 Battery
+<h2 id="battery">0</h2>
 </div>
 
 </div>
+
+<!-- planting map -->
+
+<h2>Live Plantation Map</h2>
+
+<div class="map" id="map"></div>
+
+</div>
+
+<!-- graph popup -->
+
+<div id="graphBox">
+
+<h3 id="graphTitle"></h3>
+
+<canvas id="chart" width="400"></canvas>
+
+<br><br>
+
+<button onclick="closeGraph()">Close</button>
+
+</div>
+
+<script>
+
+/* vehicle login */
+
+function startDashboard(){
+
+let id=document.getElementById("vehicleID").value;
+
+if(id==="001"){
+
+document.getElementById("landing").style.display="none";
+document.getElementById("dashboard").style.display="block";
+
+}else{
+
+alert("Invalid Vehicle ID (Use 001 for test)");
+
+}
+
+}
+
+/* test values */
+
+let speed=4;
+let distance=120;
+let plants=40;
+let missed=3;
+let battery=80;
+
+/* update values */
+
+setInterval(function(){
+
+speed=(Math.random()*6).toFixed(2);
+distance+=1;
+plants+=Math.floor(Math.random()*2);
+battery-=0.05;
+
+document.getElementById("speed").innerText=speed+" km/h";
+document.getElementById("distance").innerText=distance+" m";
+document.getElementById("plants").innerText=plants;
+document.getElementById("missed").innerText=missed;
+document.getElementById("plantDist").innerText="30 cm";
+document.getElementById("rowSwitch").innerText=Math.random()>0.8?"ON":"OFF";
+document.getElementById("rowDist").innerText="45 cm";
+document.getElementById("battery").innerText=battery.toFixed(0)+" %";
+
+updateMap();
+
+updateChart(speed);
+
+},3000);
+
+/* planting map */
+
+function updateMap(){
+
+let map="";
+
+for(let i=0;i<15;i++){
+
+map+=Math.random()>0.2?"🌱 ":"⬜ ";
+
+}
+
+document.getElementById("map").innerHTML=map;
+
+}
+
+/* chart */
+
+let ctx=document.getElementById("chart");
+
+let chart=new Chart(ctx,{
+type:"line",
+data:{
+labels:[],
+datasets:[{
+label:"value",
+data:[],
+borderColor:"green"
+}]
+}
+});
+
+function updateChart(val){
+
+chart.data.labels.push("");
+chart.data.datasets[0].data.push(val);
+
+if(chart.data.labels.length>15){
+
+chart.data.labels.shift();
+chart.data.datasets[0].data.shift();
+
+}
+
+chart.update();
+
+}
+
+function openGraph(name){
+
+document.getElementById("graphTitle").innerText=name+" vs Time";
+document.getElementById("graphBox").style.display="block";
+
+}
+
+function closeGraph(){
+
+document.getElementById("graphBox").style.display="none";
+
+}
+
+</script>
 
 </body>
-
 </html>
