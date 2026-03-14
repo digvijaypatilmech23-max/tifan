@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Smart Plantation Dashboard</title>
+
+<style>
+
+body{
+font-family: Arial;
+background:#f0fff4;
+text-align:center;
+margin:0;
+}
+
+header{
+background:#2e7d32;
+color:white;
+padding:20px;
+}
+
+.dashboard{
+display:grid;
+grid-template-columns:repeat(auto-fit,200px);
+gap:20px;
+justify-content:center;
+margin-top:30px;
+}
+
+.card{
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0 4px 8px rgba(0,0,0,0.2);
+font-size:22px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+
+<h1>🌱 Smart Plantation Monitoring Dashboard</h1>
+<h3 id="status">Machine Status: ONLINE</h3>
+
+</header>
+
+<div class="dashboard">
+
+<div class="card">
+<h2>🚜 Speed</h2>
+<p id="speed">0 km/h</p>
+</div>
+
+<div class="card">
+<h2>📏 Distance</h2>
+<p id="distance">0 m</p>
+</div>
+
+<div class="card">
+<h2>🌱 Saplings Planted</h2>
+<p id="plants">0</p>
+</div>
+
+<div class="card">
+<h2>↔ Row Alignment</h2>
+<p id="rowStatus">OK</p>
+</div>
+
+</div>
+
+</body>
+
+</html>
