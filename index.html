@@ -1,60 +1,36 @@
 <!DOCTYPE html>
 <html>
-
 <head>
 <title>KrushiSarthi Darshan</title>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <style>
 body{
-font-family: Arial;
 margin:0;
+font-family:Arial;
 background:#e8f5e9;
 text-align:center;
 }
 
-#landing{
-height:100vh;
-display:flex;
-justify-content:center;
-align-items:center;
-background:linear-gradient(135deg,#e8f5e9,#c8e6c9);
-}
-
-.mainTitle{
-font-size:55px;
-color:#1b5e20;
-}
-
-.subtitle{
-font-size:22px;
-color:#2e7d32;
-}
-
-.loginBox{
-background:white;
-padding:25px;
-border-radius:10px;
-box-shadow:0 6px 20px rgba(0,0,0,0.2);
-}
-
-button{
-padding:12px 30px;
+h1{
 background:#2e7d32;
 color:white;
-border:none;
-border-radius:6px;
-cursor:pointer;
+padding:15px;
+margin:0;
 }
 
-#dashboard{display:none;padding:20px;}
-
+/* DASHBOARD */
 .grid{
 display:grid;
 grid-template-columns:repeat(auto-fit,220px);
 gap:20px;
 justify-content:center;
+margin-top:20px;
 }
 
 .card{
@@ -62,259 +38,159 @@ background:white;
 padding:20px;
 border-radius:10px;
 box-shadow:0 4px 10px rgba(0,0,0,0.2);
-cursor:pointer;
 }
 
-#mappingPage{display:none;padding:20px;}
-
-#mapGrid{
-display:grid;
-grid-template-columns:repeat(10,40px);
-gap:8px;
-justify-content:center;
+.value{
+font-size:24px;
+color:#1b5e20;
 }
 
-.cell{font-size:28px;}
+/* MAP */
+#map{
+display:flex;
+flex-direction:column;
+align-items:center;
+margin-top:20px;
+}
 
-#graphBox{
-display:none;
-position:fixed;
-top:5%;
-left:50%;
-transform:translateX(-50%);
-background:white;
-padding:20px;
-width:80%;
+.row{
+display:flex;
+gap:5px;
+margin:3px;
+}
+
+.cell{
+font-size:22px;
 }
 </style>
-
 </head>
 
 <body>
 
-<!-- LANDING -->
-<div id="landing">
-<div>
-<h1 class="mainTitle">KRUSHISARTHI DARSHAN</h1>
-<h3 class="subtitle">Smart Plantation Monitoring</h3>
-
-<div class="loginBox">
-<input id="vehicleID" placeholder="Vehicle ID"><br><br>
-<button onclick="startDashboard()">START</button>
-</div>
-
-</div>
-</div>
-
-<!-- DASHBOARD -->
-<div id="dashboard">
-
-<h1>Dashboard</h1>
+<h1>🚜 KrushiSarthi Darshan</h1>
 
 <div class="grid">
 
-<div class="card" onclick="openGraph('Speed')">
+<div class="card">
 🚜 Speed
-<h2 id="speed">0</h2>
+<div class="value" id="speed">0</div>
 </div>
 
-<div class="card" onclick="openGraph('Distance')">
+<div class="card">
 📏 Distance
-<h2 id="distance">0</h2>
+<div class="value" id="distance">0</div>
 </div>
 
 <div class="card">
 🌱 Plants
-<h2 id="plants">0</h2>
+<div class="value" id="plants">0</div>
 </div>
 
 <div class="card">
 ❌ Missed
-<h2 id="missed">0</h2>
+<div class="value" id="missed">0</div>
 </div>
 
 <div class="card">
-🔀 Row Switch
-<h2 id="rowSwitch">OFF</h2>
+📐 Tilt
+<div class="value" id="tilt">0</div>
 </div>
 
 <div class="card">
-🔋 Battery
-<h2 id="battery">80%</h2>
-</div>
-
-<div class="card" onclick="openMapping()">
-🗺 Map
-<h3>OPEN</h3>
+🟫 Vehicle On Bed
+<div class="value" id="bed">---</div>
 </div>
 
 </div>
-</div>
 
-<!-- MAP -->
-<div id="mappingPage">
-<h1>Live Map</h1>
-<button onclick="closeMapping()">Back</button>
-<div id="mapGrid"></div>
-</div>
+<h2>🌾 Live Plantation Mapping</h2>
+<div id="map"></div>
 
-<!-- GRAPH -->
-<div id="graphBox">
-<h3 id="graphTitle"></h3>
-<canvas id="chart"></canvas><br>
-<button onclick="closeGraph()">Close</button>
-</div>
+<script>
 
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
-// 🔐 FIREBASE CONFIG
+// 🔥 FIREBASE CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyAo2-BGrCrO3N8pjTqaoAPH34_o6-Eueyo",
-  databaseURL: "tifan-66317-default-rtdb.asia-southeast1.firebasedatabase.app"
+  databaseURL: "https://tifan-66317-default-rtdb.asia-southeast1.firebasedatabase.app/"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
 // -------- VARIABLES --------
+let plantSpacing = 30;
+let lastPlantDistance = 0;
+
 let plants = 0;
 let missed = 0;
-let battery = 80;
-let lastPlantDistance = 0;
-let currentGraph = "Speed";
 
-// -------- LOGIN --------
-window.startDashboard = function(){
-let id=document.getElementById("vehicleID").value;
-if(id==="001"){
-document.getElementById("landing").style.display="none";
-document.getElementById("dashboard").style.display="block";
-}else{
-alert("Use ID: 001");
-}
-}
+let field = [[]];
+let currentRow = 0;
 
-// -------- NAV --------
-window.openMapping = function(){
-document.getElementById("dashboard").style.display="none";
-document.getElementById("mappingPage").style.display="block";
-}
+// -------- REALTIME DATA --------
+db.ref("transplanter").on("value", (snap)=>{
 
-window.closeMapping = function(){
-document.getElementById("mappingPage").style.display="none";
-document.getElementById("dashboard").style.display="block";
-}
+  let data = snap.val();
+  if(!data) return;
 
-// -------- GRAPH --------
-let ctx=document.getElementById("chart");
+  let distance = data.distance || 0;
+  let speed = data.speed || 0;
+  let tilt = data.tilt || 0;
+  let ir1 = (data.ir1 === "Plant");
+  let ir2 = (data.ir2 === "On Bed");
 
-let chart=new Chart(ctx,{
-type:"line",
-data:{
-labels:[],
-datasets:[{
-label:"Data",
-data:[],
-borderColor:"green",
-borderWidth:3
-}]
-}
-});
+  // -------- ROW CHANGE (TILT) --------
+  if(Math.abs(tilt) > 20){
+    currentRow++;
+    field.push([]);
+  }
 
-function updateChart(val){
-chart.data.labels.push("");
-chart.data.datasets[0].data.push(val);
+  // -------- PLANT LOGIC (30 cm) --------
+  if(distance - lastPlantDistance >= plantSpacing){
 
-if(chart.data.labels.length>15){
-chart.data.labels.shift();
-chart.data.datasets[0].data.shift();
-}
-chart.update();
-}
+    if(ir1){
+      field[currentRow].push("🌱");
+      plants++;
+    }else{
+      field[currentRow].push("❌");
+      missed++;
+    }
 
-// -------- MAP --------
-function updateMap(type){
-let container=document.getElementById("mapGrid");
+    lastPlantDistance = distance;
+  }
 
-let cell=document.createElement("div");
-cell.className="cell";
+  // -------- UI UPDATE --------
+  document.getElementById("speed").innerText = speed + " km/h";
+  document.getElementById("distance").innerText = distance + " cm";
+  document.getElementById("plants").innerText = plants;
+  document.getElementById("missed").innerText = missed;
+  document.getElementById("tilt").innerText = tilt + "°";
+  document.getElementById("bed").innerText = ir2 ? "ON BED" : "OFF BED";
 
-if(type==="plant") cell.innerHTML="🌱";
-else if(type==="miss") cell.innerHTML="❌";
-else cell.innerHTML="⚠";
-
-container.appendChild(cell);
-
-if(container.children.length>100){
-container.removeChild(container.firstChild);
-}
-}
-
-// -------- FIREBASE DATA --------
-onValue(ref(db, "transplanter"), (snapshot) => {
-
-let data=snapshot.val();
-if(!data) return;
-
-let speed=data.speed||0;
-let distance=data.distance||0;
-let tilt=data.tilt||0;
-let ir1=data.ir1||"No";
-let ir2=data.ir2||"No";
-
-// DISPLAY
-document.getElementById("speed").innerText=speed.toFixed(2)+" km/h";
-document.getElementById("distance").innerText=(distance/100).toFixed(2)+" m";
-
-// 🌱 LOGIC
-if(distance-lastPlantDistance>=30){
-
-lastPlantDistance+=30;
-
-if(ir2==="Object"){
-if(ir1==="Object"){
-plants++;
-updateMap("plant");
-}else{
-missed++;
-updateMap("miss");
-}
-}else{
-updateMap("skip");
-}
-}
-
-// UI
-document.getElementById("plants").innerText=plants;
-document.getElementById("missed").innerText=missed;
-
-document.getElementById("rowSwitch").innerText =
-(tilt>20)?"ON":"OFF";
-
-battery-=0.02;
-document.getElementById("battery").innerText=battery.toFixed(0)+"%";
-
-// GRAPH
-if(currentGraph==="Speed") updateChart(speed);
-if(currentGraph==="Distance") updateChart(distance/100);
+  renderMap();
 
 });
 
-// -------- GRAPH CONTROL --------
-window.openGraph=function(name){
-currentGraph=name;
-chart.data.labels=[];
-chart.data.datasets[0].data=[];
-chart.data.datasets[0].label=name;
-document.getElementById("graphTitle").innerText=name+" vs Time";
-document.getElementById("graphBox").style.display="block";
-}
+// -------- MAP RENDER --------
+function renderMap(){
 
-window.closeGraph=function(){
-document.getElementById("graphBox").style.display="none";
+  let map = document.getElementById("map");
+  map.innerHTML = "";
+
+  field.forEach(row=>{
+    let div = document.createElement("div");
+    div.className = "row";
+
+    row.forEach(cell=>{
+      let c = document.createElement("div");
+      c.className = "cell";
+      c.innerHTML = cell;
+      div.appendChild(c);
+    });
+
+    map.appendChild(div);
+  });
+
 }
 
 </script>
