@@ -1,198 +1,86 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>KrushiSarthi Darshan</title>
+  <title>Krushisarthi Plant Mapping</title>
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <style>
+    body {
+      font-family: Arial;
+      background: #eaffea;
+      text-align: center;
+    }
 
-<style>
-body{
-margin:0;
-font-family:Arial;
-background:#e8f5e9;
-text-align:center;
-}
+    h1 {
+      background: green;
+      color: white;
+      padding: 12px;
+    }
 
-h1{
-background:#2e7d32;
-color:white;
-padding:15px;
-margin:0;
-}
+    #map {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 20px;
+      width: 90%;
+      margin-left: auto;
+      margin-right: auto;
+    }
 
-/* DASHBOARD */
-.grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,220px);
-gap:20px;
-justify-content:center;
-margin-top:20px;
-}
+    .dot {
+      width: 20px;
+      height: 20px;
+      margin: 5px;
+      border-radius: 50%;
+    }
 
-.card{
-background:white;
-padding:20px;
-border-radius:10px;
-box-shadow:0 4px 10px rgba(0,0,0,0.2);
-}
-
-.value{
-font-size:24px;
-color:#1b5e20;
-}
-
-/* MAP */
-#map{
-display:flex;
-flex-direction:column;
-align-items:center;
-margin-top:20px;
-}
-
-.row{
-display:flex;
-gap:5px;
-margin:3px;
-}
-
-.cell{
-font-size:22px;
-}
-</style>
+    .green { background: green; }
+    .red { background: red; }
+  </style>
 </head>
 
 <body>
 
-<h1>🚜 KrushiSarthi Darshan</h1>
+<h1>🌱 Krushisarthi Live Plant Map</h1>
 
-<div class="grid">
-
-<div class="card">
-🚜 Speed
-<div class="value" id="speed">0</div>
-</div>
-
-<div class="card">
-📏 Distance
-<div class="value" id="distance">0</div>
-</div>
-
-<div class="card">
-🌱 Plants
-<div class="value" id="plants">0</div>
-</div>
-
-<div class="card">
-❌ Missed
-<div class="value" id="missed">0</div>
-</div>
-
-<div class="card">
-📐 Tilt
-<div class="value" id="tilt">0</div>
-</div>
-
-<div class="card">
-🟫 Vehicle On Bed
-<div class="value" id="bed">---</div>
-</div>
-
-</div>
-
-<h2>🌾 Live Plantation Mapping</h2>
 <div id="map"></div>
 
 <script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAo2-BGrCrO3N8pjTqaoAPH34_o6-Eueyo",
+    databaseURL: "https://tifan-66317-default-rtdb.asia-southeast1.firebasedatabase.app/"
+  };
 
-// 🔥 FIREBASE CONFIG
-const firebaseConfig = {
-  apiKey: "AIzaSyAo2-BGrCrO3N8pjTqaoAPH34_o6-Eueyo",
-  databaseURL: "https://tifan-66317-default-rtdb.asia-southeast1.firebasedatabase.app/"
-};
+  const app = firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+  const mapDiv = document.getElementById("map");
 
-// -------- VARIABLES --------
-let plantSpacing = 30;
-let lastPlantDistance = 0;
+  // 🔥 IMPORTANT: track previous value to avoid duplicates
+  let lastStatus = "";
 
-let plants = 0;
-let missed = 0;
+  db.ref("/transplanter/status").on("value", (snapshot) => {
+    const status = snapshot.val();
 
-let field = [[]];
-let currentRow = 0;
+    // Only add new bubble when status changes
+    if (status !== lastStatus) {
 
-// -------- REALTIME DATA --------
-db.ref("transplanter").on("value", (snap)=>{
+      let dot = document.createElement("div");
+      dot.classList.add("dot");
 
-  let data = snap.val();
-  if(!data) return;
+      if (status === "Planted") {
+        dot.classList.add("green");
+      } else {
+        dot.classList.add("red");
+      }
 
-  let distance = data.distance || 0;
-  let speed = data.speed || 0;
-  let tilt = data.tilt || 0;
-  let ir1 = (data.ir1 === "Plant");
-  let ir2 = (data.ir2 === "On Bed");
+      mapDiv.appendChild(dot);
 
-  // -------- ROW CHANGE (TILT) --------
-  if(Math.abs(tilt) > 20){
-    currentRow++;
-    field.push([]);
-  }
-
-  // -------- PLANT LOGIC (30 cm) --------
-  if(distance - lastPlantDistance >= plantSpacing){
-
-    if(ir1){
-      field[currentRow].push("🌱");
-      plants++;
-    }else{
-      field[currentRow].push("❌");
-      missed++;
+      lastStatus = status;
     }
-
-    lastPlantDistance = distance;
-  }
-
-  // -------- UI UPDATE --------
-  document.getElementById("speed").innerText = speed + " km/h";
-  document.getElementById("distance").innerText = distance + " cm";
-  document.getElementById("plants").innerText = plants;
-  document.getElementById("missed").innerText = missed;
-  document.getElementById("tilt").innerText = tilt + "°";
-  document.getElementById("bed").innerText = ir2 ? "ON BED" : "OFF BED";
-
-  renderMap();
-
-});
-
-// -------- MAP RENDER --------
-function renderMap(){
-
-  let map = document.getElementById("map");
-  map.innerHTML = "";
-
-  field.forEach(row=>{
-    let div = document.createElement("div");
-    div.className = "row";
-
-    row.forEach(cell=>{
-      let c = document.createElement("div");
-      c.className = "cell";
-      c.innerHTML = cell;
-      div.appendChild(c);
-    });
-
-    map.appendChild(div);
   });
-
-}
-
 </script>
 
 </body>
